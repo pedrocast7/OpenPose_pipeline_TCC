@@ -1,6 +1,9 @@
 ### Code that stores all the functions used for each individual analysis: Convert_video2grayscale,
 # Keypoints_Analysis_generic, Variance_openpose_analysis, Keypoints_extraction, Joint angle and angle_analysis
 
+# Author: Pedro Anderson Ferreira Castro
+# Date: 30 Mar. 2022
+
 import matplotlib.pyplot as plt # graphs
 import numpy as np # math functions
 from scipy import stats # stats functions
