@@ -1,3 +1,7 @@
+# Author: Pedro Anderson Ferreira Castro
+# Date: 24 May 2023
+
+
 import numpy as np 
 import math
 import pandas as pd
