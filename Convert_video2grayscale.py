@@ -1,3 +1,6 @@
+# Author: Pedro Anderson Ferreira Castro
+# Date: 24 May 2023
+
 # importing the module 
 import cv2 
 import numpy as np
