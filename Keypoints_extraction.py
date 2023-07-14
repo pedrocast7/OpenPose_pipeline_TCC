@@ -1,3 +1,6 @@
+# Author: Pedro Anderson Ferreira Castro
+# Date: 24 May 2023
+
 
 #./build/examples/openpose/openpose.bin --display 0 --model_pose BODY_25 
 # --net_resolution -1x336 --part_candidates  --video ./examples/media/OneDrive_1_13-07-2022/video-01-rotated.mp4 
