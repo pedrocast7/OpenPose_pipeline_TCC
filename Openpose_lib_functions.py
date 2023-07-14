@@ -2,7 +2,7 @@
 # Keypoints_Analysis_generic, Variance_openpose_analysis, Keypoints_extraction, Joint angle and angle_analysis
 
 # Author: Pedro Anderson Ferreira Castro
-# Date: 30 Mar. 2022
+# Date: 24 May 2023
 
 import matplotlib.pyplot as plt # graphs
 import numpy as np # math functions
