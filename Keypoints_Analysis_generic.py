@@ -91,7 +91,16 @@ op_left_shoulder_x_fil = signal.lfilter( b = b, a = a, x = op_left_shoulder_x_of
 f, op_left_shoulder_x_fft_fil = signal.freqz(op_left_shoulder_x_fil,worN=N, fs=fs_a_open)
 
 #scale = 0.5
-
+plt.figure()
+# plt.figure(figsize=(scale*6.4,scale*4.8))
+plt.grid(True)
+plt.plot(w, 20 * np.log10(abs(H)))
+plt.xlabel('Frequency [rad/sample]')
+plt.ylabel('Amplitude [dB]')
+plt.axis([0, 8, -60, 1])
+plt.title('Magnitude frequency response')
+plt.savefig('filtro.eps', format='eps')
+plt.show()
 
 plt.figure()
 plt.plot(range(len(op_left_shoulder_x_offset)), op_left_shoulder_x_offset,'b' ,label="Openpose")
