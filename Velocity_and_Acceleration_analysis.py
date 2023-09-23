@@ -37,7 +37,8 @@ lb = pd.read_table(path+nome_do_arquivo2, decimal = '.', encoding='latin-1') ##n
 lb_axis_data = lb['Olécrano esq. v(X)'] ## Z for Y axis in LEMOH data
 op_axis_data = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
 axis_x = 'False' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
-
+axis_analyzed = str('X')
+point_analyzed = str('Olécrano esq. a(X)')
 
 # utilizar sinal com a aplicação do offset
 op_data_offset = scale_and_offset(op_axis_data, 'n')
@@ -92,9 +93,26 @@ op_vel = smooth_savgol(op_vel, 30,7,'interp') ## 60 for the window_size paramete
 plt.figure()
 plt.plot(time_vec_lb, lb_data_offset, label="LEMOH")
 plt.plot(time_vec_lb, op_vel, label="Openpose")
-plt.title("LEMOH x Openpose Data of X axis")
+plt.title("LEMOH x Openpose Data of " + axis_analyzed + " axis")
 plt.grid()
 plt.xlabel("Time (s)")
 plt.ylabel("Velocity (m/s)")
 plt.legend() 
 plt.show()
+
+
+######### Acceleration Calculation ##############
+op_accel = np.gradient(op_vel, time_vec_lb)
+op_accel = smooth_savgol(op_accel, 800, 7, 'interp') ## best result was not smoothing out
+
+plt.figure()
+plt.plot(time_vec_lb, lb[point_analyzed], label="LEMOH")
+plt.plot(time_vec_lb, op_accel, label="Openpose")
+plt.title("LEMOH x Openpose Data of " + axis_analyzed + " axis")
+plt.grid()
+plt.xlabel("Time (s)")
+plt.ylabel("Acceleration (m/s²)")
+plt.legend() 
+plt.show()
+
+
