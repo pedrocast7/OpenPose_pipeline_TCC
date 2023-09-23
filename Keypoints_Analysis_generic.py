@@ -19,9 +19,9 @@ from Openpose_lib_functions import scale_and_offset, align_signals, select_signa
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = '/home/lamic/Openpose-pedro/LEMOH_EXP/'
-nome_do_arquivo1 = 'cam1_op_video_grayscale_new.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'testeopenpose.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
@@ -30,9 +30,9 @@ op.head(5) # Exibe os primeiros registros da base de dados
 
 # Lê arquivos de dados do lemoh
 #lb = pd.read_csv(path + nome_do_arquivo2)
-lb = pd.read_table(path+nome_do_arquivo2, decimal = ',', encoding='latin-1') ##needs use enconder 'cause the headers are in pt-br
+lb = pd.read_table(path+nome_do_arquivo2, decimal = '.', encoding='latin-1') ##needs use enconder 'cause the headers are in pt-br
 #superseded: (io.BytesIO(uploaded2[nome_do_arquivo2])), index_col = 0, decimal = ',')
-lb.head(5) # Exibe os primeiros registros da base de dados
+print(lb.head(5)) # Exibe os primeiros registros da base de dados
 
 
 
@@ -50,9 +50,9 @@ lb.head(5) # Exibe os primeiros registros da base de dados
   # return new_a, new_b, new_t
 
 
-lb_left_shoulder_x = lb['Olécrano esq. X']
+lb_left_shoulder_x = lb['Olécrano esq. X'] ## Z for Y axis in LEMOH data
 op_left_shoulder_x = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
-axis_x = 'True' ## If uses the X axis, the data must be inverted due to LEMOH's equipement calibration
+axis_x = 'False' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
 
 
 # utilizar sinal com a aplicação do offset
@@ -70,7 +70,7 @@ else: lb_left_shoulder_x_offset = lb_left_shoulder_x_offset
 #lb_left_shoulder_x_offset = lb_left_shoulder_x       #### RAW SIGNAL
 
 N = 2**14 # número de pontos de frequência
-fs_a_open = 60 # frenquência de amostragem do openpose (vídeo) ## 30 was the deafult, new has 60fps
+fs_a_open = 30 # frenquência de amostragem do openpose (vídeo) ## 30 was the deafult, new has 60fps
 # Pode alternar entre os filtros para analisar os resultados.
 
 b,a = signal.iirdesign(wp = 2, ws = 2.5, gpass = 1, 
@@ -99,7 +99,7 @@ plt.xlabel('Frequency [rad/sample]')
 plt.ylabel('Amplitude [dB]')
 plt.axis([0, 8, -60, 1])
 plt.title('Magnitude frequency response')
-plt.savefig('filtro.eps', format='eps')
+plt.savefig('../../filtro.eps', format='eps')
 plt.show()
 
 plt.figure()
@@ -425,7 +425,7 @@ plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertic
 plt.title('Component X: Lemoh & OpenPose') # título do gráfico
 plt.axis([0, 1.3, -10, 40])
 plt.legend() # exibe legenda
-
+plt.show()
 # plt.figure()
 # # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
 # plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
@@ -468,33 +468,33 @@ plt.legend() # exibe legenda
 # plt.show()
 
 # SNR no domínio da frequência
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,20*np.log10(np.abs(lb_x_data_fft)) - 
-                     20*np.log10(np.abs(err_fft)), 'k', label = 'SNR') # traça gráfico
-#plt.plot(f, 10*np.log(np.abs(op_x_data_fft)), 'b', label ='OpenPose') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
-plt.ylabel('Signal-to-noise ratio [dB]') # legenda do eixo vertical
-plt.title('Component Y: Lemoh & OpenPose') # título do gráfico
-plt.axis([0, 60 , -50, 50])
-plt.legend() # exibe legenda
-#plt.savefig('SNR.eps', format='eps')
-plt.show()
+# plt.figure()
+# # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+# plt.plot(f,20*np.log10(np.abs(lb_x_data_fft)) - 
+#                      20*np.log10(np.abs(err_fft)), 'k', label = 'SNR') # traça gráfico
+# #plt.plot(f, 10*np.log(np.abs(op_x_data_fft)), 'b', label ='OpenPose') # traça gráfico
+# plt.grid('True') # ativa grid
+# plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
+# plt.ylabel('Signal-to-noise ratio [dB]') # legenda do eixo vertical
+# plt.title('Component Y: Lemoh & OpenPose') # título do gráfico
+# plt.axis([0, 60 , -50, 50])
+# plt.legend() # exibe legenda
+# #plt.savefig('SNR.eps', format='eps')
+# plt.show()
 
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
-         label = 'LEMoH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(err_fft)), 'g', 
-         label ='Erro') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
-plt.title('Component Y: Lemoh & OpenPose') # título do gráfico
-plt.axis([0, 5, -10, 40])
-plt.legend() # exibe legenda
-#plt.savefig('erro.eps', format='eps')
+# plt.figure()
+# # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+# plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
+#          label = 'LEMoH') # traça gráfico
+# plt.plot(f, 10*np.log10(np.abs(err_fft)), 'g', 
+#          label ='Erro') # traça gráfico
+# plt.grid('True') # ativa grid
+# plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
+# plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
+# plt.title('Component Y: Lemoh & OpenPose') # título do gráfico
+# plt.axis([0, 5, -10, 40])
+# plt.legend() # exibe legenda
+# #plt.savefig('erro.eps', format='eps')
 
-plt.show()
+# plt.show()
 
