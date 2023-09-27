@@ -91,7 +91,9 @@ def select_signals_area(lemoh, openpose):
 
     fig, axs = plt.subplots(2)
     axs[0].plot(lemoh,'r')
+    axs[0].grid()
     axs[1].plot(openpose,'b')
+    axs[1].grid()
     axs[0].set_title("LEMOH Data X")
     axs[1].set_title("OpenPose Data X")
     fig.suptitle('LEMOH & Openpose')
