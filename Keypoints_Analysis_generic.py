@@ -310,11 +310,11 @@ plt.plot(time_vec_lb_trimmed,aligned_op, 'b',
 plt.plot(time_vec_lb_trimmed,lb_x_final, 'r', 
          label = 'LEMoH (final)') # traça gráfico
 plt.plot(time_vec_lb_trimmed,err, 'y', 
-         label = 'Erro (final)') # traça gráfico
+         label = 'Error (final)') # traça gráfico
 plt.grid('True') # ativa grid
-plt.xlabel('Time [s]') # legenda do eixo horizontal
+plt.xlabel('Time (s)') # legenda do eixo horizontal
 plt.ylabel('Component X') # legenda do eixo vertical
-plt.title('X axis error analysis') # título do gráfico
+plt.title('X axis Error Analysis') # título do gráfico
 plt.legend() # exibe legenda
 plt.show()
 
@@ -336,7 +336,6 @@ plt.ylabel("LEMOH inference")
 plt.grid('True')
 plt.show()
 
-## CORRELATION MEASUREMENT 
 
 #find line of best fit
 a_fit, b_fit = np.polyfit(op_x_final, lb_x_final, 1)
@@ -353,6 +352,9 @@ plt.ylabel('LEMOH inference')
 plt.title('Scatter of Y component (m)')
 #plt.savefig('cloud_OpLh.eps', format='eps')
 plt.show()
+
+
+## CORRELATION MEASUREMENT 
 
 ## calculating cross corelation and Pearson's corrcoef
 
@@ -383,7 +385,7 @@ c_values = x_corr[1]
 
 
 print(Pear_coef)
-print(a_fit,b_fit)
+#print(a_fit,b_fit)
 print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c_values)]) + ', giving the {:.4f} score'.format(c_values[np.argmax(c_values)]))
 
 # Avaliação no domínio da frequência
@@ -416,7 +418,7 @@ plt.show()
 plt.figure()
 # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
 plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
-         label = 'LEMoH') # traça gráfico
+         label = 'LEMOH') # traça gráfico
 plt.plot(f, 10*np.log10(np.abs(op_x_data_fft)), 'b', 
          label ='OpenPose') # traça gráfico
 plt.grid('True') # ativa grid
