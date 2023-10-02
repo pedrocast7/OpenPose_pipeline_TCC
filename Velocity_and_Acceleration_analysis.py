@@ -39,6 +39,7 @@ op_axis_data = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
 axis_flip = 'False' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
 axis_analyzed = str('X')
 point_analyzed = str('Olécrano esq. a(X)')
+lemoh_fps = 120
 
 # utilizar sinal com a aplicação do offset
 op_data_offset = scale_and_offset(op_axis_data, 'n')
@@ -85,7 +86,13 @@ op_data_interp = f(time_vec_lb) # sinal openpose final (no sense in interpolate 
 
 
 ########### Velocity Calculation ###############
-op_vel_raw = np.gradient(op_data_interp, time_vec_lb)
+print(f"displa: {len(op_data_interp)} and time len: {len(time_vec_lb)}")
+dv = np.gradient(op_data_interp)
+dt = 1/lemoh_fps
+op_vel_raw = dv/dt
+#op_vel_raw = np.gradient(op_data_interp, time_vec_lb)
+
+print(f"vel len: {len(op_vel_raw)} and time len: {len(time_vec_lb)}")
 
 #vector:np.array, window_size, poly_order, model
 op_vel = smooth_savgol(op_vel_raw, 30,7,'interp') ## 60 for the window_size parameter also works ok
@@ -102,8 +109,12 @@ plt.show()
 
 
 ######### Acceleration Calculation ##############
-op_accel = np.gradient(op_vel, time_vec_lb)
-#op_accel = smooth_savgol(op_accel, 800, 7, 'interp') ## 800, 7 best result was not smoothing out
+da = np.gradient(op_vel_raw)
+op_accel_raw = da/dt
+
+#op_accel_raw = np.gradient(op_vel, time_vec_lb)
+print(f"accel len: {len(op_accel_raw)} and time len: {len(time_vec_lb)}")
+op_accel = smooth_savgol(op_accel_raw, 35, 7, 'interp') ## 800, 7 best result was not smoothing out
 
 plt.figure()
 plt.plot(time_vec_lb, lb[point_analyzed], label="LEMOH")
@@ -116,8 +127,10 @@ plt.legend()
 plt.show()
 
 
+####################################################################################################
 
-##### Velocity analysis ######
+
+############### Velocity analysis ##########
 
 lhminf, lhmsup, opinf, opsup = select_signals_area(lb_data_offset, op_vel)
 
@@ -179,7 +192,7 @@ plt.show()
 
 ### Velocity Error #####
 # Calcula sinal de erro
-err = lb_vel_final - aligned_op_vel
+err = lb_vel_final - op_vel_final
 
 # SNR signal-to-noise ratio
 mse = np.mean(err ** 2) # mean square error
@@ -305,3 +318,8 @@ plt.title(f"Component {axis_analyzed}: Lemoh & OpenPose") # título do gráfico
 plt.axis([0, 1.3, -10, 40])
 plt.legend() # exibe legenda
 plt.show()
+
+
+
+########### Acceleration Analysis ###########
+
