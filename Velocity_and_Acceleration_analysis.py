@@ -19,7 +19,7 @@ from Openpose_lib_functions import scale_and_offset, align_signals, select_signa
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/DATA_TXT_CSV/'
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_12-09/DATA_TXT_CSV/'
 nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
 nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
@@ -96,6 +96,8 @@ print(f"vel len: {len(op_vel_raw)} and time len: {len(time_vec_lb)}")
 
 #vector:np.array, window_size, poly_order, model
 op_vel = smooth_savgol(op_vel_raw, 30,7,'interp') ## 60 for the window_size parameter also works ok
+lb_data_offset = smooth_savgol(lb_data_offset, 30, 7, 'interp')
+
 
 plt.figure()
 plt.plot(time_vec_lb, lb_data_offset, label="LEMOH")
@@ -114,10 +116,15 @@ op_accel_raw = da/dt
 
 #op_accel_raw = np.gradient(op_vel, time_vec_lb)
 print(f"accel len: {len(op_accel_raw)} and time len: {len(time_vec_lb)}")
-op_accel = smooth_savgol(op_accel_raw, 35, 7, 'interp') ## 800, 7 best result was not smoothing out
+op_accel = smooth_savgol(op_accel_raw, 28, 7, 'interp') ## 800, 7 best result was not smoothing out
+b, a = signal.iirfilter(7, Wn=2.5, rp=1, rs=30, fs=120, btype="lowpass", ftype="cheby1") ## interpolated, so use lemoh FPS instead
+op_accel = signal.filtfilt(b,a, op_accel)
+
+lb_data_offset2 = smooth_savgol(lb[point_analyzed], 35, 7, 'interp')
+
 
 plt.figure()
-plt.plot(time_vec_lb, lb[point_analyzed], label="LEMOH")
+plt.plot(time_vec_lb, lb_data_offset2, label="LEMOH")
 plt.plot(time_vec_lb, op_accel, label="Openpose")
 plt.title("LEMOH x Openpose Data of " + axis_analyzed + " axis")
 plt.grid()
@@ -299,7 +306,7 @@ plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b',
 plt.grid('True') # ativa grid
 plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
 plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
-plt.title(f"Component {axis_analyzed}: Lemoh & OpenPose") # título do gráfico
+plt.title(f"Componente {axis_analyzed}: Lemoh & OpenPose") # título do gráfico
 plt.axis([0, 60, -10, 40])
 plt.legend() # exibe legenda
 #plt.savefig('comparacao_freq.eps', format='eps')
@@ -314,7 +321,7 @@ plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b',
 plt.grid('True') # ativa grid
 plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
 plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
-plt.title(f"Component {axis_analyzed}: Lemoh & OpenPose") # título do gráfico
+plt.title(f"Componente {axis_analyzed}: Lemoh & OpenPose") # título do gráfico
 plt.axis([0, 1.3, -10, 40])
 plt.legend() # exibe legenda
 plt.show()
@@ -324,14 +331,14 @@ plt.show()
 ########### Acceleration Analysis ###########
 
 #load acceleration data of LEMOH
-lb_axis_data = lb[point_analyzed]
-lb_data_offset = scale_and_offset(lb_axis_data, 'n')
+lb_axis_data = lb_data_offset2
+lb_data_offset2 = scale_and_offset(lb_axis_data, 'n')
 
 if axis_flip == 'True':
-  lb_data_offset = lb_data_offset*(-1)
-else: lb_data_offset = lb_data_offset
+  lb_data_offset2 = lb_data_offset2*(-1)
+else: lb_data_offset2 = lb_data_offset2
 
-lhminf, lhmsup, opinf, opsup = select_signals_area(lb_data_offset, op_accel)
+lhminf, lhmsup, opinf, opsup = select_signals_area(lb_data_offset2, op_accel)
 
 
 index_inf_lb = int(np.round(lhminf[0])) # índice inferior do vetor lemoh 
@@ -341,7 +348,7 @@ index_sup_op = int(np.round(opsup[0])) # índice super do vetor openpose
 
 
 # Corta os vetores de sinal e tempo
-lemoh_accel_trimmed = np.array(lb_data_offset[index_inf_lb:index_sup_lb+1])
+lemoh_accel_trimmed = np.array(lb_data_offset2[index_inf_lb:index_sup_lb+1])
 time_vec_lb_trimmed = np.linspace(time_vec_lb[index_inf_lb], time_vec_lb[index_sup_lb],
                                   index_sup_lb-index_inf_lb+1) 
 
