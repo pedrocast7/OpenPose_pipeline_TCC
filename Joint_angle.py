@@ -10,31 +10,50 @@ from Openpose_lib_functions import get_angle
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--table_path', help='Path to folder containing the table file', default='/home/lamic/Openpose-pedro/scripts_openpose/codigos/video-01-336net.csv')
-parser.add_argument('--table_output_name', help='Path and name of the csv file generated at the ouput', default='/home/lamic/Openpose-pedro/scripts_openpose/codigos/test_angle.csv')
+parser.add_argument('--table_path', help='Path to folder containing the table file', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/jessica abdução lateral KINEM.txt')
+parser.add_argument('--table_output_name', help='Path and name of the csv file generated at the ouput', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/LB_angle_jessyka_abducao_lat.csv')
 args = parser.parse_args()
 
 folder_path = args.table_path
 output_csv = args.table_output_name
 
+txt_switch = 'True'
 
-keypoints = pd.read_csv(folder_path)
+if txt_switch == 'True':
+    keypoints = pd.read_table(folder_path, decimal = '.', encoding='latin-1')
 
-hip_points_X = keypoints.right_hip_x
-hip_points_Y = keypoints.right_hip_y
+    edge1_X = keypoints['T 4 X']
+    edge1_Y = keypoints['T 4 Z']*(-1)
 
-knee_points_X = keypoints.right_knee_x
-knee_points_Y = keypoints.right_knee_y
+    intersec_X = keypoints['Acrômio esq. X']
+    intersec_Y = keypoints['Acrômio esq. Z']*(-1)
 
-ankle_points_X = keypoints.right_ankle_x
-ankle_points_Y = keypoints.right_ankle_y
+    edge2_X = keypoints['Olécrano esq. X']
+    edge2_Y = keypoints['Olécrano esq. Z']*(-1)
+
+else:
+    keypoints = pd.read_csv(folder_path)
+    
+    edge1_X = keypoints.neck_x
+    edge1_Y = keypoints.neck_y
+
+    intersec_X = keypoints.left_shoulder_x
+    intersec_Y = keypoints.left_shoulder_y
+
+    edge2_X = keypoints.left_elbow_x
+    edge2_Y = keypoints.left_elbow_y
+
 
 joint_angles = []
 
 
-for index in range(len(hip_points_X)):
+## get_angle(edge1(x,y),  edge2(x,y), intersection(x,y))
+
+for index in range(len(edge1_X)):
     
-    joint_angles.append(  get_angle((hip_points_X[index], hip_points_Y[index]), (ankle_points_X[index], ankle_points_Y[index]), (knee_points_X[index], knee_points_Y[index]))  )
+    joint_angles.append(  get_angle((edge1_X[index], edge1_Y[index]),
+                                     (edge2_X[index], edge2_Y[index]),
+                                       (intersec_X[index], intersec_Y[index]))  )
 
 
 keypoints_angles = pd.DataFrame(joint_angles)  #.transpose() one column only, no needed
