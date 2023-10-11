@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 from scipy import stats
 from mpl_point_clicker import clicker
-from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area
+from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals
 from sklearn.metrics import mean_squared_error
 
 
@@ -119,7 +119,8 @@ err = lemoh_trimmed - openpose_trimmed
 err = err.reshape(-1) #1d
 
 # Calcula SNR signal-to-noise ratio
-mse = mean_squared_error(lemoh_trimmed, openpose_trimmed) # mean square error
+#mse = mean_squared_error(lemoh_trimmed, openpose_trimmed) # mean square error
+mse = np.mean(err ** 2)
 signal_e = np.mean(lemoh_trimmed ** 2) # signal energy
 SignalNR = 10 * np.log10(signal_e/mse)
 
@@ -148,7 +149,7 @@ plt.show()
 
 #filtered_openpose_15 = lowpassfilter(openpose_trimmed[0:len(x_openpose_trimmed)], thresh=0.15)
 #filtered_openpose_20 = lowpassfilter(openpose_trimmed[0:len(x_openpose_trimmed)], thresh=0.20)
-filtered_openpose_25 = lowpassfilter(openpose_trimmed, thresh=0.25)
+filtered_openpose_25 = np.array(lowpassfilter(openpose_trimmed, thresh=0.25))
 #filtered_openpose_30 = lowpassfilter(openpose_trimmed[0:len(x_openpose_trimmed)], thresh=0.30)
 #filtered_openpose_35 = lowpassfilter(openpose_trimmed[0:len(x_openpose_trimmed)], thresh=0.35)
 
@@ -178,25 +179,28 @@ filtered_openpose_25 = lowpassfilter(openpose_trimmed, thresh=0.25)
 # plt.title('Thr = 0.35')
 # plt.show()
 
-
+filtered_openpose_25 = filtered_openpose_25[:len(lemoh_trimmed)] #fix subtraction
 # Calcula sinal de erro
-err2 = np.subtract(lemoh_trimmed,filtered_openpose_25)
-err2 = np.resize(err2, (1, len(lemoh_trimmed)))
-err = np.transpose(err2)
+err2 = lemoh_trimmed - filtered_openpose_25 
+#err2 = np.resize(err2, (1, len(lemoh_trimmed)))
+err2_plot = err2 + np.mean(lemoh_trimmed)
 
 # Calcula SNR signal-to-noise ratio
 mse2 = np.mean(err2 ** 2) # mean square error
 signal_e2 = np.mean(lemoh_trimmed ** 2) # signal energy
-SNR2 = 10 * np.log10(signal_e2/mse2)
+SignalNR2 = 10 * np.log10(signal_e2/mse2)
 
-print('The signal-noise ratio, after the filtering process, is: ', SNR2, ' dB')
+print('The signal-noise ratio, after the filtering process, is: ', SignalNR2, ' dB')
+
+aligned_filtered_openpose_25 = align_signals(lemoh_trimmed, filtered_openpose_25)
 
 
 plt.figure()
 plt.plot(x_lemoh_trimmed, lemoh_trimmed,'g', label="LEMOH")
-plt.plot(x_lemoh_trimmed, filtered_openpose_25,'b', label="Openpose")
+plt.plot(x_lemoh_trimmed, aligned_filtered_openpose_25,'b', label="Openpose")
+plt.plot(x_lemoh_trimmed, err2_plot, 'r', label="Error")
 plt.title("Filtered Openpose")
-plt.xlabel("Samples")
+plt.xlabel("Time (s)")
 plt.ylabel("Estimated angle")
 plt.grid('True')
 plt.legend()
@@ -205,8 +209,8 @@ plt.show()
 
 ## CORRELATION MEASUREMENT 
 
-arr2_interp = interpolate.interp1d(np.arange(filtered_openpose_25.size),filtered_openpose_25)
-openpose2_stretch = arr2_interp(np.linspace(0,filtered_openpose_25.size-1,lemoh_trimmed.size))
+arr2_interp = interpolate.interp1d(np.arange(aligned_filtered_openpose_25.size),aligned_filtered_openpose_25)
+openpose2_stretch = arr2_interp(np.linspace(0,aligned_filtered_openpose_25.size-1,lemoh_trimmed.size))
 
 # f = interpolate.interp1d(np.arange(0, len(filtered_openpose_25)), filtered_openpose_25)
 # openpose_trimmed = f(np.linspace(0.0, len(filtered_openpose_25)-1, len(lemoh_trimmed)))
