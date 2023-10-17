@@ -7,8 +7,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
 from scipy import stats
+from scipy import signal
 from mpl_point_clicker import clicker
-from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals
+from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals, smooth_savgol
 from sklearn.metrics import mean_squared_error
 
 
@@ -262,3 +263,253 @@ c_values = x_corr[1]
 print(Pear_coef)
 print(a_fit,b_fit)
 print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c_values)]) + ', giving the {:.4f} score'.format(c_values[np.argmax(c_values)]))
+
+
+####### Velocity and Acceleration analysis #####
+lemoh_fps = 120
+
+
+########### Velocity Calculation ###############
+print(f"displa: {len(openpose2_stretch)} and time len: {len(x_lemoh_trimmed)}")
+op_in_rad = openpose2_stretch * (np.pi/180)
+dv = np.gradient(op_in_rad)
+dt = 1/lemoh_fps
+op_vel_raw = dv/dt
+
+lb_in_rad = lemoh_trimmed * (np.pi/180) ## converts to radians
+dv = np.gradient(lb_in_rad)
+lb_vel_raw = dv/dt
+
+
+#op_vel_raw = np.gradient(op_data_interp, time_vec_lb)
+
+print(f"vel len: {len(op_vel_raw)}, {len(lb_vel_raw)}  and time len: {len(x_lemoh_trimmed)}")
+
+#vector:np.array, window_size, poly_order, model
+op_vel = smooth_savgol(op_vel_raw, 30,7,'interp') ## 60 for the window_size parameter also works ok
+lb_data_offset = smooth_savgol(lb_vel_raw, 25, 7, 'interp')
+
+
+plt.figure()
+plt.plot(x_lemoh_trimmed, lb_data_offset, label="LEMOH")
+plt.plot(x_lemoh_trimmed, op_vel, label="Openpose")
+plt.title("LEMOH x Openpose Angular Velocity")
+plt.grid()
+plt.xlabel("Time (s)")
+plt.ylabel("Velocity (rad/s)")
+plt.legend() 
+plt.show()
+
+
+######### Acceleration Calculation ##############
+da = np.gradient(op_vel_raw)
+op_accel_raw = da/dt
+
+da = np.gradient(lb_vel_raw)
+lb_accel_raw = da/dt
+
+#op_accel_raw = np.gradient(op_vel, time_vec_lb)
+print(f"accel len: {len(op_accel_raw)}, {len(lb_accel_raw)} and time len: {len(x_lemoh_trimmed)}")
+op_accel = smooth_savgol(op_accel_raw, 40, 7, 'interp') ## 800, 7 best result was not smoothing out
+b, a = signal.iirfilter(7, Wn=2.5, rp=1, rs=30, fs=120, btype="lowpass", ftype="cheby1") ## interpolated, so use lemoh FPS instead
+op_accel = signal.filtfilt(b,a, op_accel)
+
+lb_data_offset2 = smooth_savgol(lb_accel_raw, 17, 7, 'interp')
+lb_data_offset2 = signal.filtfilt(b,a, lb_data_offset2)
+
+plt.figure()
+plt.plot(x_lemoh_trimmed, lb_data_offset2, label="LEMOH")
+plt.plot(x_lemoh_trimmed, op_accel, label="Openpose")
+plt.title("LEMOH x Openpose Angular Acceleration")
+plt.grid()
+plt.xlabel("Time (s)")
+plt.ylabel("Acceleration (rad/s²)")
+plt.legend() 
+plt.show()
+
+
+################ Error Analysis ######################
+
+### Velocity
+err_vel = lb_data_offset - op_vel
+
+# SNR signal-to-noise ratio
+mse = np.mean(err_vel ** 2) # mean square error
+signal_e = np.mean(lb_data_offset ** 2) # signal energy
+SignalNR_vel = 10 * np.log10(signal_e/mse)
+print('A razão sinal-ruído é da velocidade é: ', SignalNR_vel, ' dB')
+
+plt.figure()
+plt.plot(x_lemoh_trimmed, op_vel, 'b', 
+         label ='OpenPose (final)')
+plt.plot(x_lemoh_trimmed,lb_data_offset, 'r', 
+         label = 'LEMoH (final)')
+plt.plot(x_lemoh_trimmed,err_vel, 'y', 
+         label = 'Error (final)')
+plt.grid('True') 
+plt.xlabel('Time (s)') 
+plt.ylabel('Velocity (rad/s)') 
+plt.title('Angular Velocity Error Analysis') # título do gráfico
+plt.legend() # exibe legenda
+plt.show()
+
+
+#### Acceleration
+
+err_accel = lb_data_offset2 - op_accel
+
+# SNR signal-to-noise ratio
+mse = np.mean(err_accel ** 2) # mean square error
+signal_e = np.mean(lb_data_offset2 ** 2) # signal energy
+SignalNR_accel = 10 * np.log10(signal_e/mse)
+print('A razão sinal-ruído é da aceleração é: ', SignalNR_accel, ' dB')
+
+plt.figure()
+plt.plot(x_lemoh_trimmed, op_accel, 'b', 
+         label ='OpenPose (final)')
+plt.plot(x_lemoh_trimmed, lb_data_offset2, 'r', 
+         label = 'LEMoH (final)')
+plt.plot(x_lemoh_trimmed,err_accel, 'y', 
+         label = 'Error (final)')
+plt.grid('True') 
+plt.xlabel('Time (s)') 
+plt.ylabel('Acceleration (rad/s²)') 
+plt.title('Angular Acceleration Error Analysis') # título do gráfico
+plt.legend() # exibe legenda
+plt.show()
+
+
+################ Correlations Analysis ######################
+
+#### Velocity
+
+## calculating cross corelation and Pearson's corrcoef
+
+Pear_coef_vel = stats.pearsonr(lb_data_offset, op_vel)
+print(f" The Pearson's Correlation Value of the Velocity is: {Pear_coef_vel}")
+
+
+x_corr = plt.xcorr(lb_data_offset, op_vel, usevlines=True, maxlags=200, normed=True, lw=2)
+#plt.xcorr(lb_right_hip_x_final, op_x_final, usevlines=True, maxlags=58, normed=True, lw=2)
+plt.grid('True')
+plt.title('Angular Velocity data Cross-correlation')
+plt.xlabel('Lags')
+plt.ylabel('Normalized Cross-correlation')
+#plt.savefig('Cross_correlation_OpLh.eps', format='eps')
+plt.show()
+
+lags = x_corr[0]
+c_values = x_corr[1]
+
+#print(a_fit,b_fit)
+print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c_values)]) + ', giving the {:.4f} score'.format(c_values[np.argmax(c_values)]))
+
+
+
+#### Acceleration
+
+## calculating cross corelation and Pearson's corrcoef
+
+Pear_coef_accel = stats.pearsonr(lb_data_offset2, op_accel)
+print(f" The Pearson's Correlation Value of the Velocity is: {Pear_coef_accel}")
+
+
+x_corr = plt.xcorr(lb_data_offset2, op_accel, usevlines=True, maxlags=200, normed=True, lw=2)
+#plt.xcorr(lb_right_hip_x_final, op_x_final, usevlines=True, maxlags=58, normed=True, lw=2)
+plt.grid('True')
+plt.title('Angular Acceleration data Cross-correlation')
+plt.xlabel('Lags')
+plt.ylabel('Normalized Cross-correlation')
+#plt.savefig('Cross_correlation_OpLh.eps', format='eps')
+plt.show()
+
+lags = x_corr[0]
+c_values = x_corr[1]
+
+#print(a_fit,b_fit)
+print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c_values)]) + ', giving the {:.4f} score'.format(c_values[np.argmax(c_values)]))
+
+
+
+############# Frequency Analysis #############
+
+### Velocity
+
+freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
+N = 2**14 # número de pontos de frequência
+f, op_vel_data_fft = signal.freqz(op_vel,worN=N, fs=freq_a)
+f, lb_vel_data_fft = signal.freqz(lb_data_offset,worN=N, fs=freq_a)
+f, err_fft = signal.freqz(err_vel,worN=N, fs=freq_a)
+
+# Traça gráficos
+
+#scale = 1.5
+plt.figure()
+# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+plt.plot(f,10*np.log10(np.abs(lb_vel_data_fft)), 'r', 
+         label = 'LEMOH') # traça gráfico
+plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b', 
+         label ='OpenPose') # traça gráfico
+#plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
+plt.grid('True') # ativa grid
+plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
+plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
+plt.title(f"Angular Velocity: Lemoh & OpenPose") # título do gráfico
+plt.axis([0, 60, -10, 40])
+plt.legend() # exibe legenda
+#plt.savefig('comparacao_freq.eps', format='eps')
+plt.show()
+
+plt.figure()
+# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+plt.plot(f,10*np.log10(np.abs(lb_vel_data_fft)), 'r', 
+         label = 'LEMoH') # traça gráfico
+plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b', 
+         label ='OpenPose') # traça gráfico
+plt.grid('True') # ativa grid
+plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
+plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
+plt.title(f"Agular Velocity: Lemoh & OpenPose") # título do gráfico
+plt.axis([0, 1.3, -10, 40])
+plt.legend() # exibe legenda
+plt.show()
+
+
+#### Acceleration
+
+f, op_accel_data_fft = signal.freqz(op_accel,worN=N, fs=freq_a)
+f, lb_accel_data_fft = signal.freqz(lb_data_offset2,worN=N, fs=freq_a)
+f, err_fft = signal.freqz(err_accel,worN=N, fs=freq_a)
+
+# Traça gráficos
+
+#scale = 1.5
+plt.figure()
+# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+plt.plot(f,10*np.log10(np.abs(lb_accel_data_fft)), 'r', 
+         label = 'LEMOH') # traça gráfico
+plt.plot(f, 10*np.log10(np.abs(op_accel_data_fft)), 'b', 
+         label ='OpenPose') # traça gráfico
+#plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
+plt.grid('True') # ativa grid
+plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
+plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
+plt.title(f"Angular Acceleration: Lemoh & OpenPose") # título do gráfico
+plt.axis([0, 60, -10, 40])
+plt.legend() # exibe legenda
+#plt.savefig('comparacao_freq.eps', format='eps')
+plt.show()
+
+plt.figure()
+# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
+plt.plot(f,10*np.log10(np.abs(lb_accel_data_fft)), 'r', 
+         label = 'LEMoH') # traça gráfico
+plt.plot(f, 10*np.log10(np.abs(op_accel_data_fft)), 'b', 
+         label ='OpenPose') # traça gráfico
+plt.grid('True') # ativa grid
+plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
+plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
+plt.title(f"Angular Acceleration: Lemoh & OpenPose") # título do gráfico
+plt.axis([0, 1.3, -10, 40])
+plt.legend() # exibe legenda
+plt.show()

@@ -33,6 +33,10 @@ op = pd.read_csv(path+nome_do_arquivo1)
 lb = pd.read_table(path+nome_do_arquivo2, decimal = '.', encoding='latin-1') ##needs use enconder 'cause the headers are in pt-br
 #superseded: (io.BytesIO(uploaded2[nome_do_arquivo2])), index_col = 0, decimal = ',')
 
+#Just to keep the time information when uses files that doesnt have it.#
+time_ctrl = pd.read_table('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/jessica abdução lateral KINEM.txt',
+                           decimal = '.',
+                            encoding='latin-1')
 
 lb_axis_data = lb['Olécrano esq. v(X)'] ## Z for Y axis in LEMOH data
 op_axis_data = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
@@ -71,7 +75,7 @@ f, op_data_fft_fil = signal.freqz(op_filtered,worN=N, fs=fs_a_open)
 # Define vetores com informação temporal
 
 # Define o vetor tempo de referência (a partir dos dados do lemoh)
-time_vec_lb = np.array(lb['Time'])
+time_vec_lb = np.array(time_ctrl['Time'])
 
 # Define o vetor de tempo dos dados vindos do openpose
 time_vec_op = np.linspace(time_vec_lb.min(), time_vec_lb.max(), len(op))

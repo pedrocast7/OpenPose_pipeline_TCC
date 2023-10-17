@@ -19,9 +19,9 @@ from Openpose_lib_functions import scale_and_offset, align_signals, select_signa
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/DATA_TXT_CSV/'
-nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'Lucas_abducao_lat2.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'Lucas abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
