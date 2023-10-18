@@ -5,6 +5,7 @@
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+import random
 from scipy import interpolate
 from scipy import stats
 from scipy import signal
@@ -376,6 +377,73 @@ plt.xlabel('Time (s)')
 plt.ylabel('Acceleration (rad/s²)') 
 plt.title('Angular Acceleration Error Analysis') # título do gráfico
 plt.legend() # exibe legenda
+plt.show()
+
+############### Scatter Plots Analysis ######################
+
+#### Velocity
+
+lb_points_vel, op_points_vel = zip(*random.sample(list(zip(lb_data_offset, op_vel)), 40))
+
+a_val_fit, b_val_fit = np.polyfit(op_vel, lb_data_offset, 1)
+
+plt.figure()
+plt.plot(op_vel, a_val_fit*op_vel+b_val_fit, color='red')
+plt.scatter(op_points_vel, lb_points_vel)
+plt.title('Random points inference validation for Velocity')
+plt.xlabel("Openpose inference")
+plt.ylabel("LEMOH inference")
+plt.grid('True')
+plt.show()
+
+## Full Scatter plot
+#find line of best fit
+a_fit, b_fit = np.polyfit(op_vel, lb_data_offset, 1)
+
+plt.figure()
+
+#add line of best fit to plot
+plt.plot(op_vel, a_fit*op_vel+b_fit, color='red', linestyle='--')
+
+plt.scatter(op_vel, lb_data_offset)
+plt.grid('True')
+plt.xlabel('OpenPose inference')
+plt.ylabel('LEMOH inference')
+plt.title('Scatter of Angular Velocity (rad/s)')
+#plt.savefig('cloud_OpLh.eps', format='eps')
+plt.show()
+
+
+#### Acceleration
+
+lb_points_accel, op_points_accel = zip(*random.sample(list(zip(lb_data_offset2, op_accel)), 40))
+
+a_val_fit, b_val_fit = np.polyfit(op_accel, lb_data_offset2, 1)
+
+plt.figure()
+plt.plot(op_accel, a_val_fit*op_accel+b_val_fit, color='red')
+plt.scatter(op_points_accel, lb_points_accel)
+plt.title('Random points inference validation for acceleration')
+plt.xlabel("Openpose inference")
+plt.ylabel("LEMOH inference")
+plt.grid('True')
+plt.show()
+
+## Full Scatter plot
+#find line of best fit
+a_fit, b_fit = np.polyfit(op_accel, lb_data_offset2, 1)
+
+plt.figure()
+
+#add line of best fit to plot
+plt.plot(op_accel, a_fit*op_accel+b_fit, color='red', linestyle='--')
+
+plt.scatter(op_accel, lb_data_offset2)
+plt.grid('True')
+plt.xlabel('OpenPose inference')
+plt.ylabel('LEMOH inference')
+plt.title('Scatter of Angular Acceleration (rad/s²)')
+#plt.savefig('cloud_OpLh.eps', format='eps')
 plt.show()
 
 
