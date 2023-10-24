@@ -15,6 +15,7 @@ import cv2 # to deal with images too
 import pywt
 import scipy.interpolate as interp
 from scipy.signal import savgol_filter
+from scipy.fft import fft, fftfreq
 
 
 def convert_video2grayscale(video_path:str, output_path:str, fps:int):
@@ -303,3 +304,15 @@ def lowpassfilter(signal, thresh = 0.20, wavelet="db13"):
     coeff[1:] = (pywt.threshold(i, value=thresh, mode="soft" ) for i in coeff[1:])
     reconstructed_signal = pywt.waverec(coeff, wavelet, mode="per" )
     return reconstructed_signal
+
+
+#### Frequency Domain Transform (FFT)
+#converts to frequency and find the frequency peak
+def time_2_freq_n_peak_freq (signal:np.array, frequency_sample:int):
+
+    fft_result = fft(signal.reshape(-1))
+    frequencies = fftfreq(len(fft_result), 1/frequency_sample)
+    peak_freq = np.abs(frequencies[np.argmax(fft_result)])
+    return frequencies, fft_result, peak_freq
+
+

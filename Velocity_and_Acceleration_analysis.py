@@ -19,9 +19,9 @@ from Openpose_lib_functions import scale_and_offset, align_signals, select_signa
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_12-09/DATA_TXT_CSV/'
-nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'jessyka_abducao_lat.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'jessica abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
@@ -297,6 +297,10 @@ f, op_vel_data_fft = signal.freqz(op_vel_final,worN=N, fs=freq_a)
 f, lb_vel_data_fft = signal.freqz(lb_vel_final,worN=N, fs=freq_a)
 f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
+op_peak_freq = f[np.argmax(np.abs(op_vel_data_fft))]
+lb_peak_freq = f[np.argmax(np.abs(lb_vel_data_fft))]
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
 # Traça gráficos
 
 #scale = 1.5
@@ -488,13 +492,18 @@ print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c
 
 
 
-### Velocity Frequency Analysis ###
+### Acceleration Frequency Analysis ###
 
 freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 N = 2**14 # número de pontos de frequência
 f, op_accel_data_fft = signal.freqz(op_accel_final,worN=N, fs=freq_a)
 f, lb_accel_data_fft = signal.freqz(lb_accel_final,worN=N, fs=freq_a)
 f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
+
+op_peak_freq = f[np.argmax(np.abs(op_accel_data_fft))]
+lb_peak_freq = f[np.argmax(np.abs(lb_accel_data_fft))]
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
 
 # Traça gráficos
 

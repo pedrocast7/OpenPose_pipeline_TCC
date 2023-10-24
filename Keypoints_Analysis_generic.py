@@ -396,6 +396,12 @@ f, op_x_data_fft = signal.freqz(op_x_final,worN=N, fs=freq_a)
 f, lb_x_data_fft = signal.freqz(lb_x_final,worN=N, fs=freq_a)
 f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
+op_peak_freq = f[np.argmax(np.abs(op_x_data_fft))]
+lb_peak_freq = f[np.argmax(np.abs(op_x_data_fft))]
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
+
+
 # Traça gráficos
 
 #scale = 1.5
@@ -425,7 +431,7 @@ plt.grid('True') # ativa grid
 plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
 plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
 plt.title('Component X: Lemoh & OpenPose') # título do gráfico
-plt.axis([0, 1.3, -10, 40])
+plt.axis([0, 3, -10, 40])
 plt.legend() # exibe legenda
 plt.show()
 # plt.figure()

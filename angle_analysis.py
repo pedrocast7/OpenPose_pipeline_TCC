@@ -509,6 +509,12 @@ f, op_vel_data_fft = signal.freqz(op_vel,worN=N, fs=freq_a)
 f, lb_vel_data_fft = signal.freqz(lb_data_offset,worN=N, fs=freq_a)
 f, err_fft = signal.freqz(err_vel,worN=N, fs=freq_a)
 
+op_peak_freq = f[np.argmax(np.abs(op_vel_data_fft))]
+lb_peak_freq = f[np.argmax(np.abs(lb_vel_data_fft))]
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
+
+
 # Traça gráficos
 
 #scale = 1.5
@@ -548,6 +554,13 @@ plt.show()
 f, op_accel_data_fft = signal.freqz(op_accel,worN=N, fs=freq_a)
 f, lb_accel_data_fft = signal.freqz(lb_data_offset2,worN=N, fs=freq_a)
 f, err_fft = signal.freqz(err_accel,worN=N, fs=freq_a)
+
+op_peak_freq = f[np.argmax(np.abs(op_accel_data_fft))]
+lb_peak_freq = f[np.argmax(np.abs(lb_accel_data_fft))]
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
+
+
 
 # Traça gráficos
 
