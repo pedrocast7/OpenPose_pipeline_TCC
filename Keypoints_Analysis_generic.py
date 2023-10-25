@@ -392,7 +392,7 @@ print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c
 # Avaliação no domínio da frequência
 
 freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
-N = 2**14 # número de pontos de frequência
+#N = 2**14 # número de pontos de frequência
 
 f, op_x_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_x_final, freq_a)
 f, lb_x_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_x_final, freq_a)

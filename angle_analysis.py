@@ -10,7 +10,7 @@ from scipy import interpolate
 from scipy import stats
 from scipy import signal
 from mpl_point_clicker import clicker
-from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals, smooth_savgol
+from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals, smooth_savgol, time_2_freq_n_peak_freq, plot_freq_domain
 from sklearn.metrics import mean_squared_error
 
 
@@ -504,93 +504,38 @@ print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c
 ### Velocity
 
 freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
-N = 2**14 # número de pontos de frequência
-f, op_vel_data_fft = signal.freqz(op_vel,worN=N, fs=freq_a)
-f, lb_vel_data_fft = signal.freqz(lb_data_offset,worN=N, fs=freq_a)
-f, err_fft = signal.freqz(err_vel,worN=N, fs=freq_a)
+# N = 2**14 # número de pontos de frequência
+# f, op_vel_data_fft = signal.freqz(op_vel,worN=N, fs=freq_a)
+# f, lb_vel_data_fft = signal.freqz(lb_data_offset,worN=N, fs=freq_a)
+# f, err_fft = signal.freqz(err_vel,worN=N, fs=freq_a)
 
-op_peak_freq = f[np.argmax(np.abs(op_vel_data_fft))]
-lb_peak_freq = f[np.argmax(np.abs(lb_vel_data_fft))]
+f, op_vel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_vel, freq_a)
+f, lb_vel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset, freq_a)
 
-print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
 
 
 # Traça gráficos
 
-#scale = 1.5
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_vel_data_fft)), 'r', 
-         label = 'LEMOH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b', 
-         label ='OpenPose') # traça gráfico
-#plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
-plt.title(f"Angular Velocity: Lemoh & OpenPose") # título do gráfico
-plt.axis([0, 60, -10, 40])
-plt.legend() # exibe legenda
-#plt.savefig('comparacao_freq.eps', format='eps')
-plt.show()
-
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_vel_data_fft)), 'r', 
-         label = 'LEMoH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_vel_data_fft)), 'b', 
-         label ='OpenPose') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
-plt.title(f"Agular Velocity: Lemoh & OpenPose") # título do gráfico
-plt.axis([0, 1.3, -10, 40])
-plt.legend() # exibe legenda
-plt.show()
+plot_freq_domain(f, lb_vel_data_fft.real, f, op_vel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
 
 
 #### Acceleration
 
-f, op_accel_data_fft = signal.freqz(op_accel,worN=N, fs=freq_a)
-f, lb_accel_data_fft = signal.freqz(lb_data_offset2,worN=N, fs=freq_a)
-f, err_fft = signal.freqz(err_accel,worN=N, fs=freq_a)
+# f, op_accel_data_fft = signal.freqz(op_accel,worN=N, fs=freq_a)
+# f, lb_accel_data_fft = signal.freqz(lb_data_offset2,worN=N, fs=freq_a)
+# f, err_fft = signal.freqz(err_accel,worN=N, fs=freq_a)
 
-op_peak_freq = f[np.argmax(np.abs(op_accel_data_fft))]
-lb_peak_freq = f[np.argmax(np.abs(lb_accel_data_fft))]
 
-print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
 
+f, op_accel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_accel, freq_a)
+f, lb_accel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset2, freq_a)
+
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
 
 
 # Traça gráficos
 
-#scale = 1.5
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_accel_data_fft)), 'r', 
-         label = 'LEMOH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_accel_data_fft)), 'b', 
-         label ='OpenPose') # traça gráfico
-#plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
-plt.title(f"Angular Acceleration: Lemoh & OpenPose") # título do gráfico
-plt.axis([0, 60, -10, 40])
-plt.legend() # exibe legenda
-#plt.savefig('comparacao_freq.eps', format='eps')
-plt.show()
-
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_accel_data_fft)), 'r', 
-         label = 'LEMoH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_accel_data_fft)), 'b', 
-         label ='OpenPose') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
-plt.title(f"Angular Acceleration: Lemoh & OpenPose") # título do gráfico
-plt.axis([0, 1.3, -10, 40])
-plt.legend() # exibe legenda
-plt.show()
+plot_freq_domain(f, lb_accel_data_fft.real, f, op_accel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
