@@ -16,6 +16,7 @@ import pywt
 import scipy.interpolate as interp
 from scipy.signal import savgol_filter
 from scipy.fft import fft, fftfreq
+import scipy.signal
 
 
 def convert_video2grayscale(video_path:str, output_path:str, fps:int):
@@ -308,11 +309,42 @@ def lowpassfilter(signal, thresh = 0.20, wavelet="db13"):
 
 #### Frequency Domain Transform (FFT)
 #converts to frequency and find the frequency peak
-def time_2_freq_n_peak_freq (signal:np.array, frequency_sample:int):
+def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
 
-    fft_result = fft(signal.reshape(-1))
-    frequencies = fftfreq(len(fft_result), 1/frequency_sample)
-    peak_freq = np.abs(frequencies[np.argmax(fft_result)])
-    return frequencies, fft_result, peak_freq
+    fft_result = np.fft.rfft(signal.reshape(-1))
+    #magnitude = np.abs(fft_result)
+    #positive_spectrum = magnitude[:len(magnitude) // 2]
+
+    frequencies = np.fft.rfftfreq(len(signal), 1/sample_rate)
+    #positive_frequencies = frequencies[:len(frequencies) // 2]
+    # Find peaks in the spectrum
+    peaks, _ = scipy.signal.find_peaks(np.abs(fft_result), height=np.mean(np.abs(fft_result)))
+
+    # find highest peak
+    peak_index = peaks[np.argmax(np.abs(fft_result[peaks]))]
+
+    #peak_val = np.abs(fft_result[peak_index])
+    print('Os valores de frequência utilizando o limiar do valor médio de amplitude desse sinal, são:')
+
+    for idx in peaks:
+        print(f'Frequency: {frequencies[idx]:.4f}Hz, Amplitude: {np.abs(fft_result[idx]):.4f}.')
+    
+    # Highest peak freq in Hz
+    peak_frequency = frequencies[peak_index]
+    return frequencies, fft_result, peak_frequency
+
+
+def plot_freq_domain(freq_vec1, amplitude_vec1, freq_vec2, amplitude_vec2, labels:np.array):
+
+    plt.figure()
+    plt.plot(freq_vec1, np.abs(amplitude_vec1), 'r', label=labels[0])
+    plt.plot(freq_vec2, np.abs(amplitude_vec2), 'b', label=labels[1])
+    plt.grid('True')
+    plt.xlabel('Frequência [Hz]')
+    plt.ylabel('Amplitude da transformada de Fourier')
+    plt.title('Sinais no domínio da frequência: Lemoh & OpenPose')
+    plt.legend()
+    plt.show()
+
 
 

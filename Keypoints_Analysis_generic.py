@@ -13,15 +13,15 @@ from scipy import interpolate
 from scipy import signal
 import control as ctl
 import random
-from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area
+from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area, time_2_freq_n_peak_freq, plot_freq_domain
 
 
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/'
-nome_do_arquivo1 = 'Lucas_abducao_lat2.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'Lucas abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_12-09/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
@@ -125,67 +125,67 @@ plt.show()
 # #plt.savefig('filtro.eps', format='eps')
 # plt.show()
 
-plt.figure()
+#plt.figure()
 # plt.figure(figsize=(scale*6.4,scale*4.8))
-plt.plot(range(len(op_left_shoulder_x)),op_left_shoulder_x, 'b', 
-         label = 'OpenPose') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frames') # legenda do eixo horizontal
-plt.ylabel('Component X') # legenda do eixo vertical
-plt.title('Left Elbow') # título do gráfico
-plt.legend() # exibe legenda
+#plt.plot(range(len(op_left_shoulder_x)),op_left_shoulder_x, 'b', 
+#         label = 'OpenPose') # traça gráfico
+#plt.grid('True') # ativa grid
+#plt.xlabel('Frames') # legenda do eixo horizontal
+#plt.ylabel('Component X') # legenda do eixo vertical
+#plt.title('Left Elbow') # título do gráfico
+#plt.legend() # exibe legenda
 #plt.savefig('entrada_op.eps', format='eps')
-plt.show()
+#plt.show()
 
-plt.figure()
+# plt.figure()
 # plt.figure(figsize=(scale*6.4,scale*4.8))
-plt.plot(range(len(lb_left_shoulder_x)),lb_left_shoulder_x, 'r', 
-         label = 'LEMOH') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frames') # legenda do eixo horizontal
-plt.ylabel('Component X') # legenda do eixo vertical
-plt.title('Left Elbow') # título do gráfico
-plt.legend() # exibe legenda
+#plt.plot(range(len(lb_left_shoulder_x)),lb_left_shoulder_x, 'r', 
+#         label = 'LEMOH') # traça gráfico
+#plt.grid('True') # ativa grid
+#plt.xlabel('Frames') # legenda do eixo horizontal
+#plt.ylabel('Component X') # legenda do eixo vertical
+#plt.title('Left Elbow') # título do gráfico
+#plt.legend() # exibe legenda
 #plt.savefig('entrada_lb.eps', format='eps')
-plt.show()
+#plt.show()
 
 
 
 
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8))
-plt.plot(range(len(op_left_shoulder_x_fil)),op_left_shoulder_x_fil, 'g', 
-         label = 'OpenPose (filtered)') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frames') # legenda do eixo horizontal
-plt.ylabel('Component X') # legenda do eixo vertical
-plt.title('Left Elbow') # título do gráfico
-plt.legend() # exibe legenda
-#plt.savefig('filtrado_op.eps', format='eps')
-plt.show()
+# plt.figure()
+# # plt.figure(figsize=(1*6.4,1*4.8))
+# plt.plot(range(len(op_left_shoulder_x_fil)),op_left_shoulder_x_fil, 'g', 
+#          label = 'OpenPose (filtered)') # traça gráfico
+# plt.grid('True') # ativa grid
+# plt.xlabel('Frames') # legenda do eixo horizontal
+# plt.ylabel('Component X') # legenda do eixo vertical
+# plt.title('Left Elbow') # título do gráfico
+# plt.legend() # exibe legenda
+# #plt.savefig('filtrado_op.eps', format='eps')
+# plt.show()
 
 
-plt.figure()
-# plt.figure(figsize=(0.5*6.4,0.5*4.8))
-plt.plot(range(len(lb_left_shoulder_x_offset)),lb_left_shoulder_x_offset, 'r') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frames') # legenda do eixo horizontal
-plt.ylabel('Displacement (m)') # legenda do eixo vertical
-plt.title('Left Elbow') # título do gráfico
-plt.legend() # exibe legenda
-#plt.savefig('ajuste_lb.eps', format='eps')
-plt.show()
+# plt.figure()
+# # plt.figure(figsize=(0.5*6.4,0.5*4.8))
+# plt.plot(range(len(lb_left_shoulder_x_offset)),lb_left_shoulder_x_offset, 'r') # traça gráfico
+# plt.grid('True') # ativa grid
+# plt.xlabel('Frames') # legenda do eixo horizontal
+# plt.ylabel('Displacement (m)') # legenda do eixo vertical
+# plt.title('Left Elbow') # título do gráfico
+# #plt.legend() # exibe legenda
+# #plt.savefig('ajuste_lb.eps', format='eps')
+# plt.show()
 
-plt.figure()
-# plt.figure(figsize=(0.5*6.4,0.5*4.8))
-plt.plot(range(len(op_left_shoulder_x_offset)),op_left_shoulder_x_offset, 'b') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frames') # legenda do eixo horizontal
-plt.ylabel('Displacement (m)') # legenda do eixo vertical
-plt.title('Left Elbow') # título do gráfico
-plt.legend() # exibe legenda
-#plt.savefig('ajuste_op.eps', format='eps')
-plt.show()
+# plt.figure()
+# # plt.figure(figsize=(0.5*6.4,0.5*4.8))
+# plt.plot(range(len(op_left_shoulder_x_offset)),op_left_shoulder_x_offset, 'b') # traça gráfico
+# plt.grid('True') # ativa grid
+# plt.xlabel('Frames') # legenda do eixo horizontal
+# plt.ylabel('Displacement (m)') # legenda do eixo vertical
+# plt.title('Left Elbow') # título do gráfico
+# #plt.legend() # exibe legenda
+# #plt.savefig('ajuste_op.eps', format='eps')
+# plt.show()
 
 plt.figure()
 # plt.figure(figsize=(scale*6.4,scale*4.8))
@@ -300,6 +300,7 @@ signal_e = np.mean(lb_x_final ** 2) # signal energy
 SNR = 10 * np.log10(signal_e/mse)
 
 print('A razão sinal-ruído é de: ', SNR, ' dB')
+print(f'O valor máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}m')
 
 # Traça gráficos
 #scale = 1.5
@@ -392,48 +393,43 @@ print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c
 
 freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 N = 2**14 # número de pontos de frequência
-f, op_x_data_fft = signal.freqz(op_x_final,worN=N, fs=freq_a)
-f, lb_x_data_fft = signal.freqz(lb_x_final,worN=N, fs=freq_a)
-f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
-op_peak_freq = f[np.argmax(np.abs(op_x_data_fft))]
-lb_peak_freq = f[np.argmax(np.abs(op_x_data_fft))]
+f, op_x_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_x_final, freq_a)
+f, lb_x_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_x_final, freq_a)
 
-print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq}Hz e {lb_peak_freq}Hz, respectivamente.')
+#f, op_x_data_fft = signal.freqz(op_x_final,worN=N, fs=freq_a)
+#f, lb_x_data_fft = signal.freqz(lb_x_final,worN=N, fs=freq_a)
+#f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
+#op_peak_freq = f[np.argmax(np.abs(op_x_data_fft))] ## gets the peak frequency
+#lb_peak_freq = f[np.argmax(np.abs(lb_x_data_fft))]
+
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
+#print(f'As frequências fundamentais dos sinais do OpenPose e do LEMOH são {op_fund_freq}Hz e {lb_fund_freq}Hz, respectivamente.')
 
 # Traça gráficos
 
-#scale = 1.5
 plt.figure()
 # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
-         label = 'LEMoH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_x_data_fft)), 'b', 
-         label ='OpenPose') # traça gráfico
-#plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
-plt.grid('True') # ativa grid
-plt.xlabel('Frequency [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude of the Fourier transform [dB]') # legenda do eixo vertical
-plt.title('Component Y: Lemoh & OpenPose') # título do gráfico
-plt.axis([0, 60, -10, 40])
-plt.legend() # exibe legenda
-#plt.savefig('comparacao_freq.eps', format='eps')
-plt.show()
-
-plt.figure()
-# plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
+plt.plot(f,np.abs(lb_x_data_fft), 'r', 
          label = 'LEMOH') # traça gráfico
-plt.plot(f, 10*np.log10(np.abs(op_x_data_fft)), 'b', 
+plt.plot(f, np.abs(op_x_data_fft), 'b', 
          label ='OpenPose') # traça gráfico
 plt.grid('True') # ativa grid
 plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
-plt.ylabel('Magnitude da transformada de Fourier [dB]') # legenda do eixo vertical
+plt.ylabel('Amplitude da transformada de Fourier') # legenda do eixo vertical
 plt.title('Component X: Lemoh & OpenPose') # título do gráfico
-plt.axis([0, 3, -10, 40])
+plt.axis([0, 3, 0, 100])
 plt.legend() # exibe legenda
 plt.show()
+
+
+### Spectrum of Real Components of DFT Signal
+plot_freq_domain(f, lb_x_data_fft.real, f, op_x_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
+
+
+
 # plt.figure()
 # # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
 # plt.plot(f,10*np.log10(np.abs(lb_x_data_fft)), 'r', 
