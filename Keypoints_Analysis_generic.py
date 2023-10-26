@@ -13,7 +13,8 @@ from scipy import interpolate
 from scipy import signal
 import control as ctl
 import random
-from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area, time_2_freq_n_peak_freq, plot_freq_domain
+from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area
+from Openpose_lib_functions import time_2_freq_n_peak_freq, plot_freq_domain, snr_calc
 
 
 # Define path e nome dos arquivos a serem lidos
@@ -294,13 +295,22 @@ plt.show()
 # Calcula sinal de erro
 err = lb_x_final - op_x_final
 
-# SNR signal-to-noise ratio
-mse = np.mean(err ** 2) # mean square error
-signal_e = np.mean(lb_x_final ** 2) # signal energy
-SNR = 10 * np.log10(signal_e/mse)
 
-print('A razão sinal-ruído é de: ', SNR, ' dB')
-print(f'O valor máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}m')
+# Old SNR calculation
+
+# SNR signal-to-noise ratio
+#mse = np.mean(err ** 2) # mean square error
+#signal_e = np.mean(lb_x_final ** 2) # signal energy
+#SNR = 10 * np.log10(signal_e/mse)
+#print('A razão sinal-ruído (padrao) é de: ', SNR2, ' dB')
+
+
+# Elimina influência do valor médio do sinal no cálculo
+SNR = snr_calc(lb_x_final, err)
+
+
+print('A razão sinal-ruído (variancia) é de: ', SNR, ' dB')
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}m')
 
 # Traça gráficos
 #scale = 1.5
@@ -394,8 +404,8 @@ print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c
 freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 #N = 2**14 # número de pontos de frequência
 
-f, op_x_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_x_final, freq_a)
-f, lb_x_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_x_final, freq_a)
+fop, op_x_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_x_final, freq_a)
+flb, lb_x_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_x_final, freq_a)
 
 #f, op_x_data_fft = signal.freqz(op_x_final,worN=N, fs=freq_a)
 #f, lb_x_data_fft = signal.freqz(lb_x_final,worN=N, fs=freq_a)
@@ -412,9 +422,9 @@ print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_
 
 plt.figure()
 # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,np.abs(lb_x_data_fft), 'r', 
+plt.plot(flb,np.abs(lb_x_data_fft), 'r', 
          label = 'LEMOH') # traça gráfico
-plt.plot(f, np.abs(op_x_data_fft), 'b', 
+plt.plot(fop, np.abs(op_x_data_fft), 'b', 
          label ='OpenPose') # traça gráfico
 plt.grid('True') # ativa grid
 plt.xlabel('Frequência [Hz]') # legenda do eixo horizontal
@@ -426,7 +436,7 @@ plt.show()
 
 
 ### Spectrum of Real Components of DFT Signal
-plot_freq_domain(f, lb_x_data_fft.real, f, op_x_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
+plot_freq_domain(flb, lb_x_data_fft.real, fop, op_x_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
 
 
 

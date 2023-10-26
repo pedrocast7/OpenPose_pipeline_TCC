@@ -10,7 +10,8 @@ from scipy import interpolate
 from scipy import stats
 from scipy import signal
 from mpl_point_clicker import clicker
-from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area, align_signals, smooth_savgol, time_2_freq_n_peak_freq, plot_freq_domain
+from Openpose_lib_functions import scale_and_offset, lowpassfilter, select_signals_area
+from Openpose_lib_functions import align_signals, smooth_savgol, time_2_freq_n_peak_freq, plot_freq_domain, snr_calc 
 from sklearn.metrics import mean_squared_error
 
 
@@ -122,9 +123,11 @@ err = err.reshape(-1) #1d
 
 # Calcula SNR signal-to-noise ratio
 #mse = mean_squared_error(lemoh_trimmed, openpose_trimmed) # mean square error
-mse = np.mean(err ** 2)
-signal_e = np.mean(lemoh_trimmed ** 2) # signal energy
-SignalNR = 10 * np.log10(signal_e/mse)
+# mse = np.mean(err ** 2)
+# signal_e = np.mean(lemoh_trimmed ** 2) # signal energy
+# SignalNR = 10 * np.log10(signal_e/mse)
+
+SignalNR = snr_calc(lemoh_trimmed, err)
 
 print('The signal-noise ratio is: ', SignalNR, ' dB')
 
@@ -133,18 +136,27 @@ print('The signal-noise ratio is: ', SignalNR, ' dB')
 #openpose_trimmed = openpose_trimmed - (np.mean(openpose_trimmed) - np.mean(lemoh_trimmed))
 #openpose_trimmed = scale_and_offset(openpose_trimmed, 'n')
 
-err_plot = err + np.mean(lemoh_trimmed) ## offset adjust for plotting
 
-plt.figure()
-plt.plot(x_lemoh_trimmed, lemoh_trimmed,'g', label="LEMOH")
-plt.plot(x_lemoh_trimmed, openpose_trimmed,'b', label="Openpose")
-plt.plot(x_lemoh_trimmed, err_plot, 'r',label='Error')
-plt.title("Error analysis")
-plt.xlabel("Samples")
-plt.ylabel("Estimated angle")
-plt.grid('True')
+fig, ax = plt.subplots()
+ax.plot(x_lemoh_trimmed, lemoh_trimmed,'g', label="LEMOH")
+ax.plot(x_lemoh_trimmed, openpose_trimmed,'b', label="Openpose")
+
+ax.set_title("Openpose Error Analysis")
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Estimated angle")
 plt.legend()
+ax2 = ax.twinx()
+ax2.plot(x_lemoh_trimmed, err, 'r', label="Error")
+
+# ask matplotlib for the plotted objects and their labels
+lines, labels = ax.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax2.legend(lines + lines2, labels + labels2)
+
+ax2.set_ylabel("Error Value")
+plt.grid('True')
 plt.show()
+
 
 
 
@@ -185,27 +197,36 @@ filtered_openpose_25 = filtered_openpose_25[:len(lemoh_trimmed)] #fix subtractio
 # Calcula sinal de erro
 err2 = lemoh_trimmed - filtered_openpose_25 
 #err2 = np.resize(err2, (1, len(lemoh_trimmed)))
-err2_plot = err2 + np.mean(lemoh_trimmed)
+
 
 # Calcula SNR signal-to-noise ratio
-mse2 = np.mean(err2 ** 2) # mean square error
-signal_e2 = np.mean(lemoh_trimmed ** 2) # signal energy
-SignalNR2 = 10 * np.log10(signal_e2/mse2)
+#mse2 = np.mean(err2 ** 2) # mean square error
+#signal_e2 = np.mean(lemoh_trimmed ** 2) # signal energy
+SignalNR2 = snr_calc(lemoh_trimmed, err2)
 
 print('The signal-noise ratio, after the filtering process, is: ', SignalNR2, ' dB')
 
 aligned_filtered_openpose_25 = align_signals(lemoh_trimmed, filtered_openpose_25)
 
 
-plt.figure()
-plt.plot(x_lemoh_trimmed, lemoh_trimmed,'g', label="LEMOH")
-plt.plot(x_lemoh_trimmed, aligned_filtered_openpose_25,'b', label="Openpose")
-plt.plot(x_lemoh_trimmed, err2_plot, 'r', label="Error")
-plt.title("Filtered Openpose")
-plt.xlabel("Time (s)")
-plt.ylabel("Estimated angle")
-plt.grid('True')
+fig, ax = plt.subplots()
+ax.plot(x_lemoh_trimmed, lemoh_trimmed,'g', label="LEMOH")
+ax.plot(x_lemoh_trimmed, aligned_filtered_openpose_25,'b', label="Openpose")
+
+ax.set_title("Filtered Openpose Error Analysis")
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Estimated angle")
 plt.legend()
+ax2 = ax.twinx()
+ax2.plot(x_lemoh_trimmed, err2, 'r', label="Error")
+
+# ask matplotlib for the plotted objects and their labels
+lines, labels = ax.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax2.legend(lines + lines2, labels + labels2)
+
+ax2.set_ylabel("Error Value")
+plt.grid('True')
 plt.show()
 
 
@@ -266,8 +287,22 @@ print(a_fit,b_fit)
 print('The lag value for the highest Xcorrelation is {}'.format(lags[np.argmax(c_values)]) + ', giving the {:.4f} score'.format(c_values[np.argmax(c_values)]))
 
 
+#### Frequency Analysis of Displacement
+lemoh_fps = 120 ## sample rate
+
+
+fop, op_x_data_fft, op_peak_freq = time_2_freq_n_peak_freq(openpose2_stretch, lemoh_fps)
+flb, lb_x_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lemoh_trimmed, lemoh_fps)
+
+print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
+
+
+#plot
+
+plot_freq_domain(flb, lb_x_data_fft.real, fop, op_x_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
+
+
 ####### Velocity and Acceleration analysis #####
-lemoh_fps = 120
 
 
 ########### Velocity Calculation ###############
@@ -335,9 +370,9 @@ plt.show()
 err_vel = lb_data_offset - op_vel
 
 # SNR signal-to-noise ratio
-mse = np.mean(err_vel ** 2) # mean square error
-signal_e = np.mean(lb_data_offset ** 2) # signal energy
-SignalNR_vel = 10 * np.log10(signal_e/mse)
+#mse = np.mean(err_vel ** 2) # mean square error
+#signal_e = np.mean(lb_data_offset ** 2) # signal energy
+SignalNR_vel = snr_calc(lb_data_offset, err_vel)
 print('A razão sinal-ruído é da velocidade é: ', SignalNR_vel, ' dB')
 
 plt.figure()
@@ -360,9 +395,9 @@ plt.show()
 err_accel = lb_data_offset2 - op_accel
 
 # SNR signal-to-noise ratio
-mse = np.mean(err_accel ** 2) # mean square error
-signal_e = np.mean(lb_data_offset2 ** 2) # signal energy
-SignalNR_accel = 10 * np.log10(signal_e/mse)
+#mse = np.mean(err_accel ** 2) # mean square error
+#signal_e = np.mean(lb_data_offset2 ** 2) # signal energy
+SignalNR_accel = snr_calc(lb_data_offset2, err_accel)
 print('A razão sinal-ruído é da aceleração é: ', SignalNR_accel, ' dB')
 
 plt.figure()
@@ -509,8 +544,8 @@ freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 # f, lb_vel_data_fft = signal.freqz(lb_data_offset,worN=N, fs=freq_a)
 # f, err_fft = signal.freqz(err_vel,worN=N, fs=freq_a)
 
-f, op_vel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_vel, freq_a)
-f, lb_vel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset, freq_a)
+fop, op_vel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_vel, freq_a)
+flb, lb_vel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset, freq_a)
 
 
 print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
@@ -518,7 +553,7 @@ print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_
 
 # Traça gráficos
 
-plot_freq_domain(f, lb_vel_data_fft.real, f, op_vel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
+plot_freq_domain(flb, lb_vel_data_fft.real, fop, op_vel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
 
 
 #### Acceleration
@@ -529,8 +564,8 @@ plot_freq_domain(f, lb_vel_data_fft.real, f, op_vel_data_fft.real, labels=np.arr
 
 
 
-f, op_accel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_accel, freq_a)
-f, lb_accel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset2, freq_a)
+fop, op_accel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_accel, freq_a)
+flb, lb_accel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_data_offset2, freq_a)
 
 
 print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
@@ -538,4 +573,4 @@ print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_
 
 # Traça gráficos
 
-plot_freq_domain(f, lb_accel_data_fft.real, f, op_accel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))
+plot_freq_domain(flb, lb_accel_data_fft.real, fop, op_accel_data_fft.real, labels=np.array(['LEMOH', 'OpenPose']))

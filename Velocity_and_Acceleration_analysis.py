@@ -13,7 +13,8 @@ from scipy import interpolate
 from scipy import signal
 import control as ctl
 import random
-from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area, smooth_savgol, time_2_freq_n_peak_freq
+from Openpose_lib_functions import scale_and_offset, align_signals, select_signals_area
+from Openpose_lib_functions import smooth_savgol, time_2_freq_n_peak_freq, snr_calc
 
 
 # Define path e nome dos arquivos a serem lidos
@@ -206,9 +207,10 @@ plt.show()
 err = lb_vel_final - op_vel_final
 
 # SNR signal-to-noise ratio
-mse = np.mean(err ** 2) # mean square error
-signal_e = np.mean(lb_vel_final ** 2) # signal energy
-SignalNR = 10 * np.log10(signal_e/mse)
+#mse = np.mean(err ** 2) # mean square error
+#signal_e = np.mean(lb_vel_final ** 2) # signal energy
+
+SignalNR = snr_calc(lb_vel_final, err)
 print('A razão sinal-ruído é de: ', SignalNR, ' dB')
 
 
@@ -297,8 +299,8 @@ freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 # f, lb_vel_data_fft = signal.freqz(lb_vel_final,worN=N, fs=freq_a)
 # f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
-f, op_vel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_vel_final, freq_a)
-f, lb_vel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_vel_final, freq_a)
+fop, op_vel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_vel_final, freq_a)
+flb, lb_vel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_vel_final, freq_a)
 
 print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
 
@@ -307,9 +309,9 @@ print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_
 #scale = 1.5
 plt.figure()
 # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,(np.abs(lb_vel_data_fft)), 'r', 
+plt.plot(flb,(np.abs(lb_vel_data_fft)), 'r', 
          label = 'LEMOH') # traça gráfico
-plt.plot(f, (np.abs(op_vel_data_fft)), 'b', 
+plt.plot(fop, (np.abs(op_vel_data_fft)), 'b', 
          label ='OpenPose') # traça gráfico
 #plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
 plt.grid('True') # ativa grid
@@ -398,9 +400,10 @@ plt.show()
 err = lb_accel_final - op_accel_final
 
 # SNR signal-to-noise ratio
-mse = np.mean(err ** 2) # mean square error
-signal_e = np.mean(lb_accel_final ** 2) # signal energy
-SignalNR = 10 * np.log10(signal_e/mse)
+#mse = np.mean(err ** 2) # mean square error
+#signal_e = np.mean(lb_accel_final ** 2) # signal energy
+SignalNR = snr_calc(lb_accel_final, err)
+
 print('A razão sinal-ruído é de: ', SignalNR, ' dB')
 
 
@@ -489,8 +492,8 @@ freq_a = 120 # frequência de amostragem das câmeras do LEMoH (em Hertz)
 # f, lb_accel_data_fft = signal.freqz(lb_accel_final,worN=N, fs=freq_a)
 # f, err_fft = signal.freqz(err,worN=N, fs=freq_a)
 
-f, op_accel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_accel_final, freq_a)
-f, lb_accel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_accel_final, freq_a)
+fop, op_accel_data_fft, op_peak_freq = time_2_freq_n_peak_freq(op_accel_final, freq_a)
+flb, lb_accel_data_fft, lb_peak_freq = time_2_freq_n_peak_freq(lb_accel_final, freq_a)
 
 print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_freq:.4f}Hz e {lb_peak_freq:.4f}Hz, respectivamente.')
 
@@ -499,9 +502,9 @@ print(f'As frequências de pico dos sinais do OpenPose e do LEMOH são {op_peak_
 #scale = 1.5
 plt.figure()
 # plt.figure(figsize=(1*6.4,1*4.8)) # inicia nova figura e ajusta tamanho
-plt.plot(f,(np.abs(lb_accel_data_fft)), 'r', 
+plt.plot(flb,(np.abs(lb_accel_data_fft)), 'r', 
          label = 'LEMOH') # traça gráfico
-plt.plot(f, (np.abs(op_accel_data_fft)), 'b', 
+plt.plot(fop, (np.abs(op_accel_data_fft)), 'b', 
          label ='OpenPose') # traça gráfico
 #plt.semilogx(f,10*np.log(np.abs(err_fft)), 'y', label = 'Erro') # traça gráfico
 plt.grid('True') # ativa grid

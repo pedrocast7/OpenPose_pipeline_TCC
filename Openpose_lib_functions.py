@@ -17,6 +17,7 @@ import scipy.interpolate as interp
 from scipy.signal import savgol_filter
 from scipy.fft import fft, fftfreq
 import scipy.signal
+from sklearn import preprocessing as pre
 
 
 def convert_video2grayscale(video_path:str, output_path:str, fps:int):
@@ -333,8 +334,19 @@ def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
     peak_frequency = frequencies[peak_index]
     return frequencies, fft_result, peak_frequency
 
+def snr_calc (reference:np.array, sig_error:np.array):
+    ### SNR metric calculation
+    ### Uses the reference signal and error variances intead of signal energy
+    ### It eliminates the influences that the mean value of the signal may produce. 
+    SNR = 10 * np.log10(np.var(reference)/np.var(sig_error))
+
+    return SNR
+
 
 def plot_freq_domain(freq_vec1, amplitude_vec1, freq_vec2, amplitude_vec2, labels:np.array):
+
+    #amplitude_vec1_norm = pre.MinMaxScaler().fit_transform(amplitude_vec1.reshape(-1,1))
+    #amplitude_vec2_norm = pre.MinMaxScaler().fit_transform(amplitude_vec2.reshape(-1,1))
 
     plt.figure()
     plt.plot(freq_vec1, np.abs(amplitude_vec1), 'r', label=labels[0])
