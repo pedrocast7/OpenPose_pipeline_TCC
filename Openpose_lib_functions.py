@@ -330,8 +330,11 @@ def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
 
     frequencies = np.fft.rfftfreq(len(signal), 1/sample_rate)
     #positive_frequencies = frequencies[:len(frequencies) // 2]
-    # Find peaks in the spectrum
-    peaks, _ = scipy.signal.find_peaks(np.abs(fft_result), height=np.mean(np.abs(fft_result)))
+
+    # Find peaks in the spectrum above x% of the max value
+    spectrum = np.abs(fft_result)
+    thr = 0.10
+    peaks, _ = scipy.signal.find_peaks(spectrum, height=(thr*np.max(spectrum)))
 
     # find highest peak
     peak_index = peaks[np.argmax(np.abs(fft_result[peaks]))]
@@ -339,7 +342,7 @@ def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
     peak_frequency = frequencies[peak_index]
     
     #peak_val = np.abs(fft_result[peak_index])
-    print('Os valores de frequência utilizando o limiar do valor médio de amplitude desse sinal, são:')
+    print(f'Os valores de frequência utilizando o limiar de {thr*100}% do valor máximo de amplitude desse sinal, são:')
 
     for idx in peaks:
         print(f'Frequency: {frequencies[idx]:.4f}Hz, Amplitude: {np.abs(fft_result[idx]):.4f}.')
