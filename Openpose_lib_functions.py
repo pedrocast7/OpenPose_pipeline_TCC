@@ -301,9 +301,21 @@ def get_angle(edge1,  edge2, intersection):
     
 ## Wavelet Filtering
 def lowpassfilter(signal, thresh = 0.20, wavelet="db13"):
-    thresh = thresh*np.nanmax(signal)
-    coeff = pywt.wavedec(signal, wavelet, mode="per" )
+    ### Defines a wavelet filter using the Daubechies wavelet family, with 13 coefficients.
+
+# Gets the maximum value of the signal (ignores NaN) and multiplies by the threshold.
+    thresh = thresh*np.nanmax(signal) 
+
+# Decomposes the input signal, using the given wavelet family and mode "periodic", which treats the signal as so.
+    coeff = pywt.wavedec(signal, wavelet, mode="per") 
+
+    decomp_lvl = pywt.dwt_max_level(len(signal), filter_len=pywt.Wavelet(wavelet))
+    print(f'A filtragem é realizada com {decomp_lvl} niveis de decomposição da Wavelet.')
+# Iterates over all coefficientes, starting by 1, denoising the signal by reducing the coefficients that
+# are below the threshold to 0 and then smoothing them.
     coeff[1:] = (pywt.threshold(i, value=thresh, mode="soft" ) for i in coeff[1:])
+
+#Reconstruct the signal using the modified coefficients, again treating the signal as periodic.
     reconstructed_signal = pywt.waverec(coeff, wavelet, mode="per" )
     return reconstructed_signal
 
@@ -323,15 +335,16 @@ def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
 
     # find highest peak
     peak_index = peaks[np.argmax(np.abs(fft_result[peaks]))]
-
+    # Highest peak freq in Hz
+    peak_frequency = frequencies[peak_index]
+    
     #peak_val = np.abs(fft_result[peak_index])
     print('Os valores de frequência utilizando o limiar do valor médio de amplitude desse sinal, são:')
 
     for idx in peaks:
         print(f'Frequency: {frequencies[idx]:.4f}Hz, Amplitude: {np.abs(fft_result[idx]):.4f}.')
     
-    # Highest peak freq in Hz
-    peak_frequency = frequencies[peak_index]
+
     return frequencies, fft_result, peak_frequency
 
 def snr_calc (reference:np.array, sig_error:np.array):
