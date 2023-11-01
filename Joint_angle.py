@@ -10,14 +10,14 @@ from Openpose_lib_functions import get_angle
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--table_path', help='Path to folder containing the table file', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/jessica abdução lateral KINEM.txt')
-parser.add_argument('--table_output_name', help='Path and name of the csv file generated at the ouput', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/LB_angle_jessyka_abducao_lat.csv')
+parser.add_argument('--table_path', help='Path to folder containing the table file', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/Lucas_abducao_lat_2.csv')
+parser.add_argument('--table_output_name', help='Path and name of the csv file generated at the ouput', default='C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/OP_angle_lucas_abducao_lat_2.csv')
 args = parser.parse_args()
 
 folder_path = args.table_path
 output_csv = args.table_output_name
 
-txt_switch = 'True'
+txt_switch = 'False'
 
 if txt_switch == 'True':
     keypoints = pd.read_table(folder_path, decimal = '.', encoding='latin-1')

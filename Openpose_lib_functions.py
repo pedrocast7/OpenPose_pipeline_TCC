@@ -324,7 +324,9 @@ def lowpassfilter(signal, thresh = 0.20, wavelet="db13"):
 #converts to frequency and find the frequency peak
 def time_2_freq_n_peak_freq(signal:np.array, sample_rate:int):
 
-    fft_result = np.fft.rfft(signal.reshape(-1))
+    signal = signal.reshape(-1) - np.mean(signal)
+
+    fft_result = np.fft.rfft(signal)
     #magnitude = np.abs(fft_result)
     #positive_spectrum = magnitude[:len(magnitude) // 2]
 

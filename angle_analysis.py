@@ -17,14 +17,14 @@ from sklearn.metrics import mean_squared_error
 
 
 columns1 = ["joint_angles_lemoh"]
-df = pd.read_csv('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/LB_angle_jessyka_abducao_lat.csv')
+df = pd.read_csv('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/LB_angle_lucas_abducao_lat_2.csv')
 
 columns2 = ["joint_angles"]
-df2 = pd.read_csv('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/OP_angle_jessyka_abducao_lat.csv')
+df2 = pd.read_csv('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/OP_angle_lucas_abducao_lat_2.csv')
 
 print("Contents in csv file:\n", df)
 
-lb = pd.read_table('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/jessica abdução lateral KINEM.txt',
+lb = pd.read_table('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/Lucas abdução lateral KINEM.txt',
                     decimal = '.',
                       encoding='latin-1')
 
@@ -130,7 +130,7 @@ err = err.reshape(-1) #1d
 SignalNR = snr_calc(lemoh_trimmed, err)
 
 print('The signal-noise ratio is: ', SignalNR, ' dB')
-
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}°')
 
 #lemoh_trimmed = scale_and_offset(lemoh_trimmed, 'n')
 #openpose_trimmed = openpose_trimmed - (np.mean(openpose_trimmed) - np.mean(lemoh_trimmed))
@@ -205,6 +205,7 @@ err2 = lemoh_trimmed - filtered_openpose_25
 SignalNR2 = snr_calc(lemoh_trimmed, err2)
 
 print('The signal-noise ratio, after the filtering process, is: ', SignalNR2, ' dB')
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err2)):.4f}°')
 
 aligned_filtered_openpose_25 = align_signals(lemoh_trimmed, filtered_openpose_25)
 
@@ -374,6 +375,7 @@ err_vel = lb_data_offset - op_vel
 #signal_e = np.mean(lb_data_offset ** 2) # signal energy
 SignalNR_vel = snr_calc(lb_data_offset, err_vel)
 print('A razão sinal-ruído é da velocidade é: ', SignalNR_vel, ' dB')
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err_vel)):.4f}rad/s')
 
 plt.figure()
 plt.plot(x_lemoh_trimmed, op_vel, 'b', 
@@ -399,6 +401,7 @@ err_accel = lb_data_offset2 - op_accel
 #signal_e = np.mean(lb_data_offset2 ** 2) # signal energy
 SignalNR_accel = snr_calc(lb_data_offset2, err_accel)
 print('A razão sinal-ruído é da aceleração é: ', SignalNR_accel, ' dB')
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err_accel)):.4f}rad/s²')
 
 plt.figure()
 plt.plot(x_lemoh_trimmed, op_accel, 'b', 

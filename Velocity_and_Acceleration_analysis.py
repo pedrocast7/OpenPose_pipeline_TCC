@@ -20,9 +20,9 @@ from Openpose_lib_functions import smooth_savgol, time_2_freq_n_peak_freq, snr_c
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/'
-nome_do_arquivo1 = 'jessyka_abducao_lat.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'jessica abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'Lucas_abducao_lat_2.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'Lucas abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
@@ -35,15 +35,15 @@ lb = pd.read_table(path+nome_do_arquivo2, decimal = '.', encoding='latin-1') ##n
 #superseded: (io.BytesIO(uploaded2[nome_do_arquivo2])), index_col = 0, decimal = ',')
 
 #Just to keep the time information when uses files that doesnt have it.#
-time_ctrl = pd.read_table('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/jessica abdução lateral KINEM.txt',
+time_ctrl = pd.read_table('C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/lamic/Samples_04-10/DATA_TXT_CSV/Lucas abdução lateral KINEM.txt',
                            decimal = '.',
                             encoding='latin-1')
 
-lb_axis_data = lb['Olécrano esq. v(X)'] ## Z for Y axis in LEMOH data
-op_axis_data = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
-axis_flip = 'False' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
-axis_analyzed = str('X')
-point_analyzed = str('Olécrano esq. a(X)')
+lb_axis_data = lb['Lateral do punho esq. v(Z)'] ## Z for Y axis in LEMOH data
+op_axis_data = op['left_wrist_y'] ### gerar csv sem filtro p comparação.
+axis_flip = 'True' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
+axis_analyzed = str('Y')
+point_analyzed = str('Lateral do punho esq. a(Z)')
 lemoh_fps = 120
 
 # utilizar sinal com a aplicação do offset
@@ -122,11 +122,17 @@ op_accel_raw = da/dt
 #op_accel_raw = np.gradient(op_vel, time_vec_lb)
 print(f"accel len: {len(op_accel_raw)} and time len: {len(time_vec_lb)}")
 op_accel = smooth_savgol(op_accel_raw, 28, 7, 'interp') ## 800, 7 best result was not smoothing out
-b, a = signal.iirfilter(7, Wn=2.5, rp=1, rs=30, fs=120, btype="lowpass", ftype="cheby1") ## interpolated, so use lemoh FPS instead
+b, a = signal.iirfilter(7, Wn=1.5, rp=1, rs=30, fs=120, btype="lowpass", ftype="cheby1") ## interpolated, so use lemoh FPS instead
 op_accel = signal.filtfilt(b,a, op_accel)
 
-lb_data_offset2 = smooth_savgol(lb[point_analyzed], 35, 7, 'interp')
+lb_data_offset2 = lb[point_analyzed]
 
+#if axis_flip == 'True':
+#  lb_data_offset2 = lb_data_offset2*(-1)
+#else: lb_data_offset2 = lb_data_offset2
+
+lb_data_offset2 = smooth_savgol(lb_data_offset2, 35, 7, 'interp')
+lb_data_offset2 = signal.filtfilt(b, a, lb_data_offset2)
 
 plt.figure()
 plt.plot(time_vec_lb, lb_data_offset2, label="LEMOH")
@@ -212,7 +218,7 @@ err = lb_vel_final - op_vel_final
 
 SignalNR = snr_calc(lb_vel_final, err)
 print('A razão sinal-ruído é de: ', SignalNR, ' dB')
-
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}m')
 
 plt.figure()
 plt.plot(time_vec_lb_trimmed,aligned_op_vel, 'b', 
@@ -405,7 +411,7 @@ err = lb_accel_final - op_accel_final
 SignalNR = snr_calc(lb_accel_final, err)
 
 print('A razão sinal-ruído é de: ', SignalNR, ' dB')
-
+print(f'O valor absoluto máximo de erro para esse conjunto de dados é: {np.max(np.abs(err)):.4f}m')
 
 plt.figure()
 plt.plot(time_vec_lb_trimmed,aligned_op_accel, 'b', 

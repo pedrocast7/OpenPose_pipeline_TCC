@@ -20,9 +20,9 @@ from Openpose_lib_functions import time_2_freq_n_peak_freq, plot_freq_domain, sn
 # Define path e nome dos arquivos a serem lidos
 # O path pode mudar de uma conta do drive para outra.
 # path = '/content/drive/MyDrive/projetos/lam/data/lemoh/Comparação dos dados (interpolação)/'
-path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_12-09/DATA_TXT_CSV/'
-nome_do_arquivo1 = 'Lucas_AbducaoLat_Sentado.csv' # arquivo que contém dados obtidos pelo openpose
-nome_do_arquivo2 = 'TESTE 2 - Lucas abdução sentado.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
+path = 'C:/Users/pedro/OneDrive/Documentos/UFPA - Material/TCC STUFF/Samples_04-10/DATA_TXT_CSV/'
+nome_do_arquivo1 = 'Lucas_abducao_lat_2.csv' # arquivo que contém dados obtidos pelo openpose
+nome_do_arquivo2 = 'Lucas abdução lateral KINEM.txt' #'abduction_Pedro_Trial_grayscale.csv' # arquivo que contém dados obtidos no lemoh
 
 # Lê arquivos de dados do openpose
 op = pd.read_csv(path+nome_do_arquivo1) 
@@ -51,9 +51,9 @@ print(lb.head(5)) # Exibe os primeiros registros da base de dados
   # return new_a, new_b, new_t
 
 
-lb_left_shoulder_x = lb['Olécrano esq. X'] ## Z for Y axis in LEMOH data
-op_left_shoulder_x = op['left_elbow_x'] ### gerar csv sem filtro p comparação.
-axis_x = 'False' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
+lb_left_shoulder_x = lb['Lateral do punho esq. Z'] ## Z for Y axis in LEMOH data
+op_left_shoulder_x = op['left_wrist_y'] ### gerar csv sem filtro p comparação.
+axis_x = 'True' ## If uses the Y axis, the data must be inverted due to LEMOH's equipement calibration
 
 
 # utilizar sinal com a aplicação do offset
